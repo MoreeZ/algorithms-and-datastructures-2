@@ -8,7 +8,9 @@ public class Main {
         HashMap<Integer, Vertex> stops = new HashMap<>();
         HashMap<Integer, LinkedList<Edge>> trips = new HashMap<>();
         loadStopData(stops, "stops.txt");
-        generateFloydMatrix();
+        TernarySearchTree ternarySearch = new TernarySearchTree(stops);
+        System.out.println(ternarySearch.search("HASTINGS"));
+//        generateFloydMatrix();
 
     }
 
@@ -69,7 +71,6 @@ public class Main {
             e.printStackTrace();
 
         }
-
     }
 
     static void generateFloydMatrix(){

@@ -2,7 +2,8 @@
  * * Java Program to Implement Ternary Search Tree
  **/
 
-import java.util.Scanner;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.ArrayList;
 
 /**
@@ -28,7 +29,7 @@ class TSTNode {
 /**
  * class TernarySearchTree
  **/
-class TernarySearchTree {
+public class TernarySearchTree {
     private TSTNode root;
     private ArrayList<String> al;
     private ArrayList<Integer> ids;
@@ -36,8 +37,29 @@ class TernarySearchTree {
     /**
      * Constructor
      **/
-    public TernarySearchTree() {
+    public TernarySearchTree(HashMap<Integer, Vertex> stops) {
         root = null;
+        for (Map.Entry<Integer, Vertex> set : stops.entrySet()) {
+            this.insert(cleanStopName(set.getValue().stop_name));
+//            ids.add(set.getKey());
+        }
+
+    }
+
+    private String cleanStopName (String name) {
+        String newName = name;
+        // Prefixes
+        newName.replaceAll("^WB", "");
+        newName.replaceAll("^NB", "");
+        newName.replaceAll("^SB", "");
+        newName.replaceAll("^EB", "");
+        // Postfixes
+        newName.replaceAll("WB$", "");
+        newName.replaceAll("NB$", "");
+        newName.replaceAll("SB$", "");
+        newName.replaceAll("EB$", "");
+        newName.trim();
+        return newName;
     }
 
     /**
@@ -149,27 +171,30 @@ class TernarySearchTree {
             traverse(r.right, str);
         }
     }
+
+
 }
 
 
-/**
- * class TernarySearchTree
- **/
-public class TernarySearch {
-    public static void main(String[] args) {
-        TernarySearchTree tst = new TernarySearchTree();
-        tst.insert("pine");
-        tst.insert("pineapple");
-        tst.insert("pimple");
-        tst.insert("parent");
-        tst.insert("patriot");
-        tst.insert("parrot");
-        tst.insert("pinch");
-        tst.insert("apple");
-        tst.insert("pen");
-
-        String result = tst.search("parrot");
-        System.out.println(result);
-
-    }
-}
+///**
+// * class TernarySearchTree
+// **/
+//public class TernarySearch {
+//
+//    public static void main(String[] args) {
+////        TernarySearchTree tst = new TernarySearchTree();
+////        tst.insert("pine");
+////        tst.insert("pineapple");
+////        tst.insert("pimple");
+////        tst.insert("parent");
+////        tst.insert("patriot");
+////        tst.insert("parrot");
+////        tst.insert("pinch");
+////        tst.insert("apple");
+////        tst.insert("pen");
+////
+////        String result = tst.search("parrot");
+////        System.out.println(result);
+//
+//    }
+//}
