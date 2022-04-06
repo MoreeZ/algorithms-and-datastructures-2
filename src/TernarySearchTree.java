@@ -4,7 +4,6 @@
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.ArrayList;
 
 /**
  * class TSTNode
@@ -31,49 +30,45 @@ class TSTNode {
  **/
 public class TernarySearchTree {
     private TSTNode root;
-    private ArrayList<String> al;
-    private ArrayList<Integer> ids;
+    private HashMap<String, Integer> stopSearchData;
+//    private ArrayList<Integer> ids;
 
     /**
      * Constructor
      **/
     public TernarySearchTree(HashMap<Integer, Vertex> stops) {
         root = null;
+        stopSearchData = new HashMap<>();
         for (Map.Entry<Integer, Vertex> set : stops.entrySet()) {
-            this.insert(cleanStopName(set.getValue().stop_name));
-//            ids.add(set.getKey());
+            String cleanName = cleanStopName(set.getValue().stop_name);
+            this.insert(cleanName);
+            stopSearchData.put(cleanStopName(set.getValue().stop_name), set.getValue().stop_id);
         }
-
     }
 
-    private String cleanStopName (String name) {
-        String newName = name;
+    public Vertex getStopData (HashMap<Integer, Vertex> stops, String stopName) {
+        try {
+            int idOfStop = stopSearchData.get(stopName);
+            return stops.get(idOfStop);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public String cleanStopName (String name) {
+        String newName = new String(name);
         // Prefixes
-        newName.replaceAll("^WB", "");
-        newName.replaceAll("^NB", "");
-        newName.replaceAll("^SB", "");
-        newName.replaceAll("^EB", "");
+        newName = newName.replaceAll("^WB", "");
+        newName = newName.replaceAll("^NB", "");
+        newName = newName.replaceAll("^SB", "");
+        newName = newName.replaceAll("^EB", "");
         // Postfixes
-        newName.replaceAll("WB$", "");
-        newName.replaceAll("NB$", "");
-        newName.replaceAll("SB$", "");
-        newName.replaceAll("EB$", "");
-        newName.trim();
+        newName = newName.replaceAll("WB$", "");
+        newName = newName.replaceAll("NB$", "");
+        newName = newName.replaceAll("SB$", "");
+        newName = newName.replaceAll("EB$", "");
+        newName = newName.trim();
         return newName;
-    }
-
-    /**
-     * function to check if empty
-     **/
-    public boolean isEmpty() {
-        return root == null;
-    }
-
-    /**
-     * function to clear
-     **/
-    public void makeEmpty() {
-        root = null;
     }
 
     /**
@@ -148,53 +143,4 @@ public class TernarySearchTree {
                 return search(r.middle, word, ptr + 1);
         }
     }
-
-    /**
-     * function to print tree
-     **/
-    public String toString() {
-        al = new ArrayList<String>();
-        traverse(root, "");
-        return "\nTernary Search Tree : " + al;
-    }
-
-    /**
-     * function to traverse tree
-     **/
-    private void traverse(TSTNode r, String str) {
-        if (r != null) {
-            traverse(r.left, str);
-            str = str + r.data;
-            if (r.isEnd) al.add(str);
-            traverse(r.middle, str);
-            str = str.substring(0, str.length() - 1);
-            traverse(r.right, str);
-        }
-    }
-
-
 }
-
-
-///**
-// * class TernarySearchTree
-// **/
-//public class TernarySearch {
-//
-//    public static void main(String[] args) {
-////        TernarySearchTree tst = new TernarySearchTree();
-////        tst.insert("pine");
-////        tst.insert("pineapple");
-////        tst.insert("pimple");
-////        tst.insert("parent");
-////        tst.insert("patriot");
-////        tst.insert("parrot");
-////        tst.insert("pinch");
-////        tst.insert("apple");
-////        tst.insert("pen");
-////
-////        String result = tst.search("parrot");
-////        System.out.println(result);
-//
-//    }
-//}

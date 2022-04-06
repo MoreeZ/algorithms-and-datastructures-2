@@ -8,9 +8,84 @@ public class Main {
         HashMap<Integer, Vertex> stops = new HashMap<>();
         HashMap<Integer, LinkedList<Edge>> trips = new HashMap<>();
         loadStopData(stops, "stops.txt");
-        TernarySearchTree ternarySearch = new TernarySearchTree(stops);
-        System.out.println(ternarySearch.search("HASTINGS"));
-//        generateFloydMatrix();
+
+        boolean quit = false;
+        Scanner input = new Scanner(System.in);
+        while (!quit) {
+            System.out.println("=========== AVAILABLE OPTIONS ===========");
+            System.out.println("(1) Shortest path search");
+            System.out.println("(2) Stop information search");
+            System.out.println("(3) Trip search with arrival time");
+            System.out.println("Type \"quit\" to quit the program.");
+            System.out.println("=========================================");
+            System.out.print("Select option: ");
+            String in = input.nextLine();
+            try {
+                int option = Integer.parseInt(in);
+                switch (option) {
+                    case 1:
+                        break;
+                    case 2:
+                        System.out.println("Loading stop search program...");
+                        runStopSearch(input, stops);
+                        break;
+                    case 3:
+                        break;
+                    default:
+                        System.out.println("Option not available. Please try again.");
+                        break;
+                }
+            } catch (Exception e) {
+                if (in.equalsIgnoreCase("quit")) {
+                    System.out.println("Quitting program. See you later!");
+                    quit = true;
+                } else
+                    System.out.println("Incorrect input! Please enter a number.");
+            }
+        }
+        input.close();
+
+    }
+
+    static void runStopSearch(Scanner input, HashMap<Integer, Vertex> stops) {
+        boolean exit = false;
+        while (!exit) {
+            System.out.println("============== STOP SEARCH ==============");
+            System.out.println("Search for bus stop information with bus stop name.");
+            System.out.println("Type \"exit\" to exit.");
+            System.out.println("=========================================");
+            TernarySearchTree ternarySearch = new TernarySearchTree(stops);
+            System.out.print("Bus stop name: ");
+            String searchInput = input.nextLine();
+            if (searchInput.equalsIgnoreCase("exit")) {
+                exit = true;
+            } else {
+//          example: ANTRIM AVE
+                String searchResult = ternarySearch.search(searchInput.toUpperCase());
+                Vertex stopData = ternarySearch.getStopData(stops, searchResult);
+                if (stopData != null) {
+                    System.out.println("=========== STOP INFORMATION ============");
+                    System.out.println("ID:\t\t\t\t" + stopData.stop_id);
+                    System.out.println("Code:\t\t\t" + stopData.stop_code);
+                    System.out.println("Name:\t\t\t" + stopData.stop_name);
+                    System.out.println("Description:\t" + stopData.stop_desc);
+                    System.out.println("Latitude:\t\t" + stopData.stop_lat);
+                    System.out.println("Longitude:\t\t" + stopData.stop_lon);
+                    System.out.println("Zone ID:\t\t" + stopData.zone_id);
+                    if (stopData.stop_url.trim() == "")
+                        System.out.println("URL:\t\t\t\t" + "Not available.");
+                    else
+                        System.out.println("URL:\t\t\t\t" + stopData.stop_url);
+                    System.out.println("Location Type\t" + stopData.location_type);
+                    System.out.println("Parent station:\t" + stopData.parent_station);
+                } else {
+                    System.out.println("There is no bus stop with this name.");
+                }
+            }
+        }
+    }
+
+    static void generateFloydMatrix() {
 
     }
 
@@ -71,9 +146,5 @@ public class Main {
             e.printStackTrace();
 
         }
-    }
-
-    static void generateFloydMatrix(){
-
     }
 }
