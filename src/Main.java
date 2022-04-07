@@ -1,12 +1,13 @@
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Main {
 
     public static void main(String[] args) {
-        HashMap<Integer, Vertex> stops = new HashMap<>();
-        HashMap<Integer, LinkedList<Edge>> trips = new HashMap<>();
+        HashMap<Integer, Stop> stops = new HashMap<>();
         loadStopData(stops, "stops.txt");
 
         boolean quit = false;
@@ -14,7 +15,7 @@ public class Main {
         while (!quit) {
             System.out.println("=========== AVAILABLE OPTIONS ===========");
             System.out.println("(1) Shortest path search");
-            System.out.println("(2) Stop information search");
+            System.out.println("(2) Bus stop information search");
             System.out.println("(3) Trip search with arrival time");
             System.out.println("Type \"quit\" to quit the program.");
             System.out.println("=========================================");
@@ -24,12 +25,16 @@ public class Main {
                 int option = Integer.parseInt(in);
                 switch (option) {
                     case 1:
+                        System.out.println("Loading shortest path between bus stops program...");
+                        runShortestPath(input);
                         break;
                     case 2:
                         System.out.println("Loading stop search program...");
                         runStopSearch(input, stops);
                         break;
                     case 3:
+                        System.out.println("Loading trip finder with arrival time program...");
+                        runSearchTrips(input, stops);
                         break;
                     default:
                         System.out.println("Option not available. Please try again.");
@@ -37,7 +42,7 @@ public class Main {
                 }
             } catch (Exception e) {
                 if (in.equalsIgnoreCase("quit")) {
-                    System.out.println("Quitting program. See you later!");
+                    System.out.print("Quitting program. See you later!");
                     quit = true;
                 } else
                     System.out.println("Incorrect input! Please enter a number.");
@@ -47,14 +52,34 @@ public class Main {
 
     }
 
-    static void runStopSearch(Scanner input, HashMap<Integer, Vertex> stops) {
+    static void runShortestPath(Scanner input) {
+        boolean exit = false;
+        while (!exit) {
+            System.out.println("=========== FIND SHORTEST PATH ==========");
+            System.out.println("Enter the departure bus stop and the\n" +
+                    "destination bus stop to find the shortest\n" +
+                    "path between the stops.");
+            System.out.println("Type \"exit\" to exit.");
+            System.out.println("=========================================");
+            System.out.print("Bus stop ID: ");
+            String searchInput = input.nextLine();
+            if (searchInput.equalsIgnoreCase("exit")) {
+                exit = true;
+            } else {
+//          example: ANTRIM AVE
+                System.out.println("UNIMPLEMENTED SHORTEST PATH FUNCTIONALITY");
+            }
+        }
+    }
+
+    static void runStopSearch(Scanner input, HashMap<Integer, Stop> stops) {
+        TernarySearchTree ternarySearch = new TernarySearchTree(stops);
         boolean exit = false;
         while (!exit) {
             System.out.println("============== STOP SEARCH ==============");
             System.out.println("Search for bus stop information with bus stop name.");
             System.out.println("Type \"exit\" to exit.");
             System.out.println("=========================================");
-            TernarySearchTree ternarySearch = new TernarySearchTree(stops);
             System.out.print("Bus stop name: ");
             String searchInput = input.nextLine();
             if (searchInput.equalsIgnoreCase("exit")) {
@@ -62,7 +87,7 @@ public class Main {
             } else {
 //          example: ANTRIM AVE
                 String searchResult = ternarySearch.search(searchInput.toUpperCase());
-                Vertex stopData = ternarySearch.getStopData(stops, searchResult);
+                Stop stopData = ternarySearch.getStopData(stops, searchResult);
                 if (stopData != null) {
                     System.out.println("=========== STOP INFORMATION ============");
                     System.out.println("ID:\t\t\t\t" + stopData.stop_id);
@@ -85,11 +110,54 @@ public class Main {
         }
     }
 
+    static void runSearchTrips(Scanner input, HashMap<Integer, Stop> stops) {
+        HashMap<Integer, LinkedList<Trip>> trips = new HashMap<>();
+
+        boolean exit = false;
+        while (!exit) {
+            System.out.println("=========== FIND SHORTEST PATH ==========");
+            System.out.println(
+                    "Enter the an arrival time and we will show\n" +
+                            "you a list of trips you can take to arrive\n" +
+                            "at that time");
+            System.out.println("Type \"exit\" to exit.");
+            System.out.println("=========================================");
+            System.out.print("Arrival time (hh:mm:ss): ");
+            String arrivalTimeSearchIn = input.nextLine();
+            if (arrivalTimeSearchIn.equalsIgnoreCase("exit")) {
+                exit = true;
+            } else {
+                Pattern r = Pattern.compile("^(?:(?:([01]?\\d|2[0-3]):)?([0-5]?\\d):)?([0-5]?\\d)$");
+                Matcher m = r.matcher(arrivalTimeSearchIn);
+                if (m.matches()) {
+                    System.out.println("Loading paths containing the arrival time \"" + arrivalTimeSearchIn + "\"...");
+                    loadRelevantPaths(trips, stops, "stop_times.txt", arrivalTimeSearchIn);
+                    System.out.println("=========================================");
+                    System.out.println("Found " + trips.size() + " trips.");
+                    for (Map.Entry<Integer, LinkedList<Trip>> set : trips.entrySet()) {
+                        Stop arrivalStop = new Stop();
+                        for (int i = 0; i < set.getValue().size(); i++) {
+                            if (timeStringToSeconds(set.getValue().get(i).arrival_time) == timeStringToSeconds(arrivalTimeSearchIn)) {
+                                arrivalStop = stops.get(set.getValue().get(i).stop_id);
+                            }
+                        }
+                        System.out.println("Trip ID: " + set.getKey() +
+                                ".\nLeaving from stop (ID): " + stops.get(set.getValue().getFirst().stop_id).stop_name +
+                                ".\nEnding at stop: " + stops.get(set.getValue().getLast().stop_id).stop_name +
+                                "\nArriving at " + arrivalTimeSearchIn + " at stop: " + arrivalStop.stop_name);
+                        System.out.println("=========================================");
+                    }
+                } else
+                    System.out.println("Invalid input format!");
+            }
+        }
+    }
+
     static void generateFloydMatrix() {
 
     }
 
-    static void loadStopData(HashMap<Integer, Vertex> stops, String filename) {
+    static void loadStopData(HashMap<Integer, Stop> stops, String filename) {
         if (filename == null) {
             return;
         }
@@ -130,7 +198,7 @@ public class Main {
                     String stop_url = tokens[7];
                     int location_type = Integer.parseInt(tokens[8]);
                     String parent_station = tokens[9];
-                    Vertex stop = new Vertex(stop_id, stop_code, stop_name, stop_desc, stop_lat, stop_lon, zone_id, stop_url, location_type, parent_station);
+                    Stop stop = new Stop(stop_id, stop_code, stop_name, stop_desc, stop_lat, stop_lon, zone_id, stop_url, location_type, parent_station);
                     stops.put(stop_id, stop);
 
                 } catch (Exception e) {
@@ -147,4 +215,96 @@ public class Main {
 
         }
     }
+
+    static void loadRelevantPaths(HashMap<Integer, LinkedList<Trip>> trips, HashMap<Integer, Stop> stops, String filename, String inputStr) {
+        if (filename == null) {
+            return;
+        }
+        try {
+            // Get file from directory
+            File myFile = new File(filename);
+            Scanner myReader = new Scanner(myFile);
+            String dataLine = myReader.nextLine(); // get first line that doesnt store data
+
+            int inputArrivalTimeInSeconds = timeStringToSeconds(inputStr);
+            int previousID = 0;
+            LinkedList<Trip> tempList = new LinkedList<>();
+            boolean matchesArrivalTime = false;
+
+            while (myReader.hasNextLine()) {
+                try {
+                    // Load a line of text data
+                    dataLine = myReader.nextLine();
+                    // split the line onto an array
+                    String[] tokens = dataLine.split(",");
+                    if (tokens.length < 9) {
+                        String[] newTokens = new String[9];
+                        for (int i = 0; i < tokens.length; i++) {
+                            newTokens[i] = tokens[i];
+                        }
+                        tokens = newTokens;
+                    }
+                    // place all data values into variables
+                    int trip_id = Integer.parseInt(tokens[0]);
+                    String arrival_time = tokens[1];
+                    String departure_time = tokens[2]; // wrong
+                    int stop_id = Integer.parseInt(tokens[3]);
+                    int stop_sequence = Integer.parseInt(tokens[4]);
+                    String stop_headsign = tokens[5];
+                    int pickup_type = Integer.parseInt(tokens[6]);
+                    int drop_off_type = Integer.parseInt(tokens[7]);
+                    double shape_dist_traveled;
+                    if (tokens[8] == null)
+                        shape_dist_traveled = 0.0;
+                    else
+                        shape_dist_traveled = Double.parseDouble(tokens[8]);
+                    Trip trip = new Trip(trip_id, arrival_time, departure_time, stop_id, stop_sequence, stop_headsign, pickup_type, drop_off_type, shape_dist_traveled);
+                    // convert arrivalTime of current line to seconds
+                    int arrivalInSeconds = timeStringToSeconds(arrival_time);
+                    if (trip_id == previousID) {
+                        tempList.push(trip);
+                        if (arrivalInSeconds == inputArrivalTimeInSeconds)
+                            matchesArrivalTime = true;
+                    } else {
+                        if (matchesArrivalTime) {
+                            if (tempList.size() > 0)
+                                trips.put(previousID, tempList);
+                        }
+                        tempList = new LinkedList<>();
+                        tempList.push(trip);
+                        previousID = trip_id;
+                        matchesArrivalTime = false;
+                    }
+
+                } catch (Exception e) {
+                    System.out.println(e);
+                    e.printStackTrace();
+                }
+            }
+            myReader.close();
+        } catch (FileNotFoundException e) {
+            System.out.println(e);
+            e.printStackTrace();
+
+        }
+    }
+
+    static int timeStringToSeconds(String time) {
+        try {
+            String[] arrivalTokens = time.split(":");
+            arrivalTokens[0] = arrivalTokens[0].trim().replaceAll("00", "0");
+            arrivalTokens[1] = arrivalTokens[1].trim().replaceAll("00", "0");
+            arrivalTokens[2] = arrivalTokens[2].trim().replaceAll("00", "0");
+            int arrivalH = Integer.parseInt(arrivalTokens[0]);
+            int arrivalM = Integer.parseInt(arrivalTokens[1]);
+            int arrivalS = Integer.parseInt(arrivalTokens[2]);
+            int calculatedTime = arrivalS + (arrivalM * 60) + (arrivalH * 60 * 60);
+            return calculatedTime;
+        } catch (Exception e) {
+            System.out.println(e);
+            e.printStackTrace(System.out);
+            return -1;
+        }
+    }
+
 }

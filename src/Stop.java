@@ -1,6 +1,4 @@
-import java.util.ArrayList;
-
-public class Vertex {
+public class Stop {
     public int stop_id;
     public int stop_code;
     public String stop_name;
@@ -12,16 +10,16 @@ public class Vertex {
     public int location_type;
     public String parent_station;
 
-    Vertex(int stop_id,
-           int stop_code,
-           String stop_name,
-           String stop_desc,
-           double stop_lat,
-           double stop_lon,
-           String zone_id,
-           String stop_url,
-           int location_type,
-           String parent_station) {
+    Stop(int stop_id,
+         int stop_code,
+         String stop_name,
+         String stop_desc,
+         double stop_lat,
+         double stop_lon,
+         String zone_id,
+         String stop_url,
+         int location_type,
+         String parent_station) {
         this.stop_id = stop_id;
         this.stop_code = stop_code;
         this.stop_name = stop_name;
@@ -33,4 +31,5 @@ public class Vertex {
         this.location_type = location_type;
         this.parent_station = parent_station;
     }
+    Stop() {}
 }

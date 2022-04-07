@@ -33,20 +33,20 @@ public class TernarySearchTree {
     private HashMap<String, Integer> stopSearchData;
 //    private ArrayList<Integer> ids;
 
-    /**
+     /**
      * Constructor
      **/
-    public TernarySearchTree(HashMap<Integer, Vertex> stops) {
+    public TernarySearchTree(HashMap<Integer, Stop> stops) {
         root = null;
         stopSearchData = new HashMap<>();
-        for (Map.Entry<Integer, Vertex> set : stops.entrySet()) {
+        for (Map.Entry<Integer, Stop> set : stops.entrySet()) {
             String cleanName = cleanStopName(set.getValue().stop_name);
             this.insert(cleanName);
             stopSearchData.put(cleanStopName(set.getValue().stop_name), set.getValue().stop_id);
         }
     }
 
-    public Vertex getStopData (HashMap<Integer, Vertex> stops, String stopName) {
+    public Stop getStopData (HashMap<Integer, Stop> stops, String stopName) {
         try {
             int idOfStop = stopSearchData.get(stopName);
             return stops.get(idOfStop);
@@ -62,11 +62,13 @@ public class TernarySearchTree {
         newName = newName.replaceAll("^NB", "");
         newName = newName.replaceAll("^SB", "");
         newName = newName.replaceAll("^EB", "");
+        newName = newName.replaceAll("^FLAGSTOP", "");
         // Postfixes
         newName = newName.replaceAll("WB$", "");
         newName = newName.replaceAll("NB$", "");
         newName = newName.replaceAll("SB$", "");
         newName = newName.replaceAll("EB$", "");
+        newName = newName.replaceAll("FLAGSTOP$", "");
         newName = newName.trim();
         return newName;
     }
