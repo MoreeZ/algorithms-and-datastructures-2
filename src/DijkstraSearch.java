@@ -6,55 +6,52 @@ public class DijkstraSearch {
      * @param filename: A filename containing the details of the city road network
      * @param sA,       sB, sC: speeds for 3 contestants
      */
-    HashMap<Integer, List<Edge>> Vertices;
+    HashMap<Integer, ArrayList<Edge>> Vertices;
     int numOfVertices;
     int numOfEdges;
     double[] distanceArr;
     int[] previousArr;
 
-    DijkstraSearch(String filename) {
-        this.numOfEdges = 0;
-        this.numOfVertices = 0;
+    DijkstraSearch(ArrayList<Edge> edgeList, HashMap<Integer, Stop> stops) {
         this.Vertices = new HashMap<>();
+        this.numOfVertices = stops.size();
+        this.numOfEdges = edgeList.size();
 
         try {
-            File myFile = new File(filename);
-            Scanner input = new Scanner(myFile);
-            this.numOfVertices = input.nextInt();
-            this.numOfEdges = input.nextInt();
+            // setup distanceArr
             distanceArr = new double[numOfVertices];
             for (int i = 0; i < this.numOfVertices; i++) {
                 distanceArr[i] = Double.POSITIVE_INFINITY;
             }
+            // setup previous vertex array
             previousArr = new int[numOfVertices];
             for (int i = 0; i < this.numOfVertices; i++) {
                 previousArr[i] = -1;
             }
-
-
-            while (input.hasNextLine()) {
+            // load edge data into hashmap
+            for (int i = 0; i < edgeList.size(); i++) {
                 try {
-                    int from = Integer.parseInt(input.next());
-                    int to = Integer.parseInt(input.next());
-                    double length = Double.parseDouble(input.next());
+                    int from = edgeList.get(i).from;
+                    int to = edgeList.get(i).to;
+                    double weight = edgeList.get(i).weight;
                     ArrayList<Edge> list = new ArrayList<>();
                     if (Vertices.containsKey(from)) {
                         list = (ArrayList<Edge>) Vertices.get(from);
                     }
-                    Edge workingEdge = new Edge(from, to, length);
+                    Edge workingEdge = new Edge(from, to, weight);
                     list.add(workingEdge);
                     Vertices.put(from, list);
                 } catch (Exception e) {
                     this.numOfEdges = 0;
                     this.numOfVertices = 0;
-                    this.Vertices = new HashMap<Integer, List<Edge>>();
+                    this.Vertices = new HashMap<>();
                     return;
                 }
             }
-            input.close();
-        } catch (FileNotFoundException e) {
+        } catch (Exception e) {
             this.numOfVertices = 0;
             this.numOfEdges = 0;
+            this.Vertices = new HashMap<>();
             e.printStackTrace();
         }
     }
@@ -85,7 +82,7 @@ public class DijkstraSearch {
                     u = k;
                 }
             }
-            List<Edge> workingEdges = Vertices.get(u);
+            ArrayList<Edge> workingEdges = Vertices.get(u);
             visitedArr[u] = true;
 
             if (workingEdges != null) {
@@ -106,7 +103,7 @@ public class DijkstraSearch {
         return distanceArr[endingPoint];
     }
 
-    public class Edge {
+    public static class Edge {
         double weight;
         int from;
         int to;

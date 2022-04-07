@@ -1,3 +1,5 @@
+import java.util.HashMap;
+
 public class Stop {
     public int stop_id;
     public int stop_code;
@@ -33,3 +35,8 @@ public class Stop {
     }
     Stop() {}
 }
+//Hashmap<Integer, Stop> myHashmap = new HashMap<>();
+//Stop stop = new Stop(a b c d e f g); // makes new stop with all information a b c d e f g
+//myHashmap.put(stop.stop_id, stop);
+//
+//// because it contains all the stop information

@@ -5,7 +5,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Main {
-
     public static void main(String[] args) {
         HashMap<Integer, Stop> stops = new HashMap<>();
         loadStopData(stops, "stops.txt");
@@ -26,7 +25,7 @@ public class Main {
                 switch (option) {
                     case 1:
                         System.out.println("Loading shortest path between bus stops program...");
-                        runShortestPath(input);
+                        runShortestPath(input, stops);
                         break;
                     case 2:
                         System.out.println("Loading stop search program...");
@@ -52,7 +51,15 @@ public class Main {
 
     }
 
-    static void runShortestPath(Scanner input) {
+    static void runShortestPath(Scanner input, HashMap<Integer, Stop> stops) {
+        System.out.println("Loading bus journey information...");
+        HashMap<Integer, Integer> IDtoIndexMap = new HashMap<>();
+        int index = 0;
+        for (Map.Entry<Integer, Stop> set : stops.entrySet()) {
+            IDtoIndexMap.put(set.getKey(), index++);
+        }
+        ArrayList<DijkstraSearch.Edge> edgeList = getEdgeList("stop_times.txt", IDtoIndexMap);
+
         boolean exit = false;
         while (!exit) {
             System.out.println("=========== FIND SHORTEST PATH ==========");
@@ -66,7 +73,9 @@ public class Main {
             if (searchInput.equalsIgnoreCase("exit")) {
                 exit = true;
             } else {
-//          example: ANTRIM AVE
+                // Get a list of unique edges using trip data and map them to their trip id's
+                DijkstraSearch dijkstra = new DijkstraSearch(edgeList, stops);
+                dijkstra.getDistance(IDtoIndexMap.get(11307), IDtoIndexMap.get(8743));
                 System.out.println("UNIMPLEMENTED SHORTEST PATH FUNCTIONALITY");
             }
         }
@@ -110,6 +119,73 @@ public class Main {
         }
     }
 
+    static ArrayList<DijkstraSearch.Edge> getEdgeList(String filename, HashMap<Integer, Integer> IDtoIndexMap) {
+        ArrayList<DijkstraSearch.Edge> edgeList = new ArrayList<>();
+        if (filename == null) {
+            return edgeList;
+        }
+        try {
+            // Get file from directory
+            File myFile = new File(filename);
+            Scanner myReader = new Scanner(myFile);
+            String dataLine = myReader.nextLine(); // get first line that doesnt store data
+
+            Trip lastTrip = null;
+            while (myReader.hasNextLine()) {
+                try {
+                    // Load a line of text data
+                    dataLine = myReader.nextLine();
+                    // split the line onto an array
+                    String[] tokens = dataLine.split(",");
+                    if (tokens.length < 9) {
+                        String[] newTokens = new String[9];
+                        for (int i = 0; i < tokens.length; i++) {
+                            newTokens[i] = tokens[i];
+                        }
+                        tokens = newTokens;
+                    }
+                    // place all data values into variables
+                    int trip_id = Integer.parseInt(tokens[0]);
+                    String arrival_time = tokens[1];
+                    String departure_time = tokens[2]; // wrong
+                    int stop_id = Integer.parseInt(tokens[3]);
+                    int stop_sequence = Integer.parseInt(tokens[4]);
+                    String stop_headsign = tokens[5];
+                    int pickup_type = Integer.parseInt(tokens[6]);
+                    int drop_off_type = Integer.parseInt(tokens[7]);
+                    double shape_dist_traveled;
+                    if (tokens[8] == null)
+                        shape_dist_traveled = 0.0;
+                    else
+                        shape_dist_traveled = Double.parseDouble(tokens[8]);
+                    Trip trip = new Trip(trip_id, arrival_time, departure_time, stop_id, stop_sequence, stop_headsign, pickup_type, drop_off_type, shape_dist_traveled);
+                    // convert arrivalTime of current line to seconds
+                    int arrivalInSeconds = timeStringToSeconds(arrival_time);
+                    if (trip.stop_sequence == 1) {
+                        // first trip in sequence
+                        lastTrip = trip;
+                    } else {
+                        // another trip in sequence
+                        if (lastTrip != null) {
+                            double weight = timeStringToSeconds(lastTrip.departure_time) - timeStringToSeconds(trip.arrival_time);
+                            DijkstraSearch.Edge e = new DijkstraSearch.Edge(IDtoIndexMap.get(lastTrip.stop_id), IDtoIndexMap.get(trip.stop_id), weight);
+                            edgeList.add(e);
+                        }
+                    }
+
+                } catch (Exception e) {
+                    System.out.println(e);
+                    e.printStackTrace();
+                }
+            }
+            myReader.close();
+        } catch (FileNotFoundException e) {
+            System.out.println(e);
+            e.printStackTrace();
+        }
+        return edgeList;
+    }
+
     static void runSearchTrips(Scanner input, HashMap<Integer, Stop> stops) {
         HashMap<Integer, LinkedList<Trip>> trips = new HashMap<>();
 
@@ -151,10 +227,6 @@ public class Main {
                     System.out.println("Invalid input format!");
             }
         }
-    }
-
-    static void generateFloydMatrix() {
-
     }
 
     static void loadStopData(HashMap<Integer, Stop> stops, String filename) {
