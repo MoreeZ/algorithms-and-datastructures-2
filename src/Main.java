@@ -58,8 +58,9 @@ public class Main {
         for (Map.Entry<Integer, Stop> set : stops.entrySet()) {
             IDtoIndexMap.put(set.getKey(), index++);
         }
-        ArrayList<DijkstraSearch.Edge> edgeList = getEdgeList("stop_times.txt", IDtoIndexMap);
-
+        ArrayList<DijkstraSearch.Edge> edgeList = getEdgeList(IDtoIndexMap);
+        DijkstraSearch dijkstra = new DijkstraSearch(edgeList, stops);
+        System.out.println(edgeSearch(edgeList,IDtoIndexMap.get(378), IDtoIndexMap.get(379)));
         boolean exit = false;
         while (!exit) {
             System.out.println("=========== FIND SHORTEST PATH ==========");
@@ -74,11 +75,24 @@ public class Main {
                 exit = true;
             } else {
                 // Get a list of unique edges using trip data and map them to their trip id's
-                DijkstraSearch dijkstra = new DijkstraSearch(edgeList, stops);
-                dijkstra.getDistance(IDtoIndexMap.get(11307), IDtoIndexMap.get(8743));
+                int inputFrom = 3332;
+                int inputTo = 3198;
+                System.out.println("Stop " + inputFrom + " to index: " + IDtoIndexMap.get(inputFrom));
+                System.out.println("Stop " + inputTo + " to index: " + IDtoIndexMap.get(inputTo));
+                double distance = dijkstra.getDistance(IDtoIndexMap.get(inputFrom), IDtoIndexMap.get(inputTo));
                 System.out.println("UNIMPLEMENTED SHORTEST PATH FUNCTIONALITY");
             }
         }
+    }
+
+    // debug function
+    private static String edgeSearch(ArrayList<DijkstraSearch.Edge> edgeList, int from, int to) {
+        for (int i = 0; i < edgeList.size(); i++){
+            if (edgeList.get(i).from == from && edgeList.get(i).to == to) {
+                return "Edge found!";
+            }
+        }
+        return "edgeSearch is broken...";
     }
 
     static void runStopSearch(Scanner input, HashMap<Integer, Stop> stops) {
@@ -119,14 +133,12 @@ public class Main {
         }
     }
 
-    static ArrayList<DijkstraSearch.Edge> getEdgeList(String filename, HashMap<Integer, Integer> IDtoIndexMap) {
+    static ArrayList<DijkstraSearch.Edge> getEdgeList(HashMap<Integer, Integer> IDtoIndexMap) {
         ArrayList<DijkstraSearch.Edge> edgeList = new ArrayList<>();
-        if (filename == null) {
-            return edgeList;
-        }
+        String stopTimesStr = "stop_times.txt";
         try {
             // Get file from directory
-            File myFile = new File(filename);
+            File myFile = new File(stopTimesStr);
             Scanner myReader = new Scanner(myFile);
             String dataLine = myReader.nextLine(); // get first line that doesnt store data
 
@@ -160,18 +172,68 @@ public class Main {
                         shape_dist_traveled = Double.parseDouble(tokens[8]);
                     Trip trip = new Trip(trip_id, arrival_time, departure_time, stop_id, stop_sequence, stop_headsign, pickup_type, drop_off_type, shape_dist_traveled);
                     // convert arrivalTime of current line to seconds
-                    int arrivalInSeconds = timeStringToSeconds(arrival_time);
                     if (trip.stop_sequence == 1) {
                         // first trip in sequence
                         lastTrip = trip;
                     } else {
                         // another trip in sequence
                         if (lastTrip != null) {
-                            double weight = timeStringToSeconds(lastTrip.departure_time) - timeStringToSeconds(trip.arrival_time);
-                            DijkstraSearch.Edge e = new DijkstraSearch.Edge(IDtoIndexMap.get(lastTrip.stop_id), IDtoIndexMap.get(trip.stop_id), weight);
+//                            double weight = timeStringToSeconds(lastTrip.departure_time) - timeStringToSeconds(trip.arrival_time);
+                            DijkstraSearch.Edge e = new DijkstraSearch.Edge(IDtoIndexMap.get(lastTrip.stop_id), IDtoIndexMap.get(trip.stop_id), 1);
                             edgeList.add(e);
+                            lastTrip = trip;
                         }
                     }
+
+                } catch (Exception e) {
+                    System.out.println(e);
+                    e.printStackTrace();
+                }
+            }
+            myReader.close();
+        } catch (FileNotFoundException e) {
+            System.out.println(e);
+            e.printStackTrace();
+        }
+        // LOAD FROM TRANSFERS.txt
+        String transfersStr = "transfers.txt";
+        try {
+            // Get file from directory
+            File myFile = new File(transfersStr);
+            Scanner myReader = new Scanner(myFile);
+            String dataLine = myReader.nextLine(); // get first line that doesnt store data
+
+//            from_stop_id,to_stop_id,transfer_type,min_transfer_time
+            while (myReader.hasNextLine()) {
+                try {
+                    // Load a line of text data
+                    dataLine = myReader.nextLine();
+                    // split the line onto an array
+                    String[] tokens = dataLine.split(",");
+                    if (tokens.length < 4) {
+                        String[] newTokens = new String[4];
+                        for (int i = 0; i < tokens.length; i++) {
+                            newTokens[i] = tokens[i];
+                        }
+                        tokens = newTokens;
+                    }
+                    // place all data values into variables
+                    int transFrom = Integer.parseInt(tokens[0]);
+                    int transTo = Integer.parseInt(tokens[1]);
+                    int TransType = Integer.parseInt(tokens[2]);
+                    double transTime;
+                    if (tokens[3] == null)
+                        transTime = 0.0;
+                    else
+                        transTime = Double.parseDouble(tokens[3]);
+
+                    double weight = 2.0;
+                    if (TransType == 2) {
+                        weight = transTime / 100.0;
+                    }
+                    DijkstraSearch.Edge e = new DijkstraSearch.Edge(IDtoIndexMap.get(transFrom), IDtoIndexMap.get(transTo), weight);
+                    edgeList.add(e);
+
 
                 } catch (Exception e) {
                     System.out.println(e);

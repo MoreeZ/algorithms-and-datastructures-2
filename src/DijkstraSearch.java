@@ -6,7 +6,7 @@ public class DijkstraSearch {
      * @param filename: A filename containing the details of the city road network
      * @param sA,       sB, sC: speeds for 3 contestants
      */
-    HashMap<Integer, ArrayList<Edge>> Vertices;
+    HashMap<Integer, List<Edge>> Vertices;
     int numOfVertices;
     int numOfEdges;
     double[] distanceArr;
@@ -14,7 +14,7 @@ public class DijkstraSearch {
 
     DijkstraSearch(ArrayList<Edge> edgeList, HashMap<Integer, Stop> stops) {
         this.Vertices = new HashMap<>();
-        this.numOfVertices = stops.size();
+        this.numOfVertices = findNumOfVertices(edgeList);
         this.numOfEdges = edgeList.size();
 
         try {
@@ -34,9 +34,9 @@ public class DijkstraSearch {
                     int from = edgeList.get(i).from;
                     int to = edgeList.get(i).to;
                     double weight = edgeList.get(i).weight;
-                    ArrayList<Edge> list = new ArrayList<>();
+                    List<Edge> list = new ArrayList<>();
                     if (Vertices.containsKey(from)) {
-                        list = (ArrayList<Edge>) Vertices.get(from);
+                        list = Vertices.get(from);
                     }
                     Edge workingEdge = new Edge(from, to, weight);
                     list.add(workingEdge);
@@ -56,11 +56,20 @@ public class DijkstraSearch {
         }
     }
 
+    public int findNumOfVertices (ArrayList<Edge> edgeList) {
+        HashSet<Integer> froms = new HashSet<>();
+        for(int i = 0; i < edgeList.size(); i++) {
+            froms.add(edgeList.get(i).from);
+            if(!froms.contains(edgeList.get(i).to)) {
+                System.out.println(edgeList.get(i).to);
+                System.out.println(edgeList.get(i).to);
+            }
+        }
+        return froms.size();
+    }
+
     public double getDistance(int startingPoint, int endingPoint) {
         boolean[] visitedArr = new boolean[numOfVertices];
-        for (int i = 0; i < numOfVertices; i++) {
-            visitedArr[i] = false;
-        }
 
         distanceArr = new double[numOfVertices];
         for (int i = 0; i < this.numOfVertices; i++) {
@@ -73,32 +82,37 @@ public class DijkstraSearch {
         }
         distanceArr[startingPoint] = 0;
 
-        for (int i = 0; i < numOfVertices - 1; i++) {
-            double min = Double.POSITIVE_INFINITY;
-            int u = 0;
-            for (int k = 0; k < numOfVertices; k++) {
-                if (distanceArr[k] <= min && visitedArr[k] == false) {
-                    min = distanceArr[k];
-                    u = k;
-                }
-            }
-            ArrayList<Edge> workingEdges = Vertices.get(u);
-            visitedArr[u] = true;
+        try {
 
-            if (workingEdges != null) {
-                for (int j = 0; j < workingEdges.size(); j++) {
-                    if (!visitedArr[workingEdges.get(j).to]) {
-                        int v = workingEdges.get(j).to;
-                        double combinedDist = distanceArr[u] + workingEdges.get(j).weight;
-                        if (combinedDist < distanceArr[v]) {
-                            distanceArr[v] = combinedDist;
-                            previousArr[v] = workingEdges.get(j).from;
+            for (int i = 0; i < numOfVertices - 1; i++) {
+                double min = Double.POSITIVE_INFINITY;
+                int u = 0;
+                for (int k = 0; k < numOfVertices; k++) {
+                    if (distanceArr[k] <= min && visitedArr[k] == false) {
+                        min = distanceArr[k];
+                        u = k;
+                    }
+                }
+                List<Edge> workingEdges = Vertices.get(u);
+                visitedArr[u] = true;
+
+                if (workingEdges != null) {
+                    for (int j = 0; j < workingEdges.size(); j++) {
+                        if (!visitedArr[workingEdges.get(j).to]) {
+                            int v = workingEdges.get(j).to;
+                            double combinedDist = distanceArr[u] + workingEdges.get(j).weight;
+                            if (combinedDist < distanceArr[v]) {
+                                distanceArr[v] = combinedDist;
+                                previousArr[v] = workingEdges.get(j).from;
+                            }
                         }
                     }
                 }
             }
+        } catch (Exception e) {
+            System.out.println("Error calculating shortest path :(");
+            e.printStackTrace(System.out);
         }
-
 
         return distanceArr[endingPoint];
     }

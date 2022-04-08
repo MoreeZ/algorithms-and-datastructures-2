@@ -23,4 +23,14 @@ public class Trip {
         this.shape_dist_traveled = shape_dist_traveled;
     }
 
+    @Override
+    public String toString() {
+        return "Trip{" +
+                "trip_id=" + trip_id +
+                ", arrival_time='" + arrival_time + '\'' +
+                ", departure_time='" + departure_time + '\'' +
+                ", stop_id=" + stop_id +
+                ", stop_sequence=" + stop_sequence +
+                '}';
+    }
 }
