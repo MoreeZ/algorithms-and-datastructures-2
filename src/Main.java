@@ -1,5 +1,6 @@
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -45,6 +46,7 @@ public class Main {
                     quit = true;
                 } else
                     System.out.println("Incorrect input! Please enter a number.");
+                e.printStackTrace(System.out);
             }
         }
         input.close();
@@ -59,7 +61,6 @@ public class Main {
         }
         ArrayList<DijkstraSearch.Edge> edgeList = getEdgeList(IDtoIndexMap);
         DijkstraSearch dijkstra = new DijkstraSearch(edgeList, stops);
-        System.out.println(edgeSearch(edgeList,IDtoIndexMap.get(378), IDtoIndexMap.get(379)));
         boolean exit = false;
         while (!exit) {
             System.out.println("=========== FIND SHORTEST PATH ==========");
@@ -69,13 +70,18 @@ public class Main {
             System.out.println("Type \"exit\" to exit.");
             System.out.println("=========================================");
             System.out.print("Enter departure stop ID: ");
-            int inputFrom;
-            int inputTo;
+            int inputFrom, inputTo = -1;
             String searchInput = input.nextLine();
 
             inputFrom = validateBusIdInput(searchInput, stops);
-            // if from input is valid then ask for to input
-            if (inputFrom != -1) {
+            if (searchInput.equalsIgnoreCase("exit")) {
+                // if input is "exit" then exit to main menu
+                exit = true;
+            } else if (inputFrom == -1) {
+                // if input is not valid then ask again.
+                continue;
+            } else {
+                // if from input is valid then ask for second "to" input
                 System.out.print("Enter arrival stop ID: ");
                 searchInput = input.nextLine();
                 inputTo = validateBusIdInput(searchInput, stops);
@@ -83,16 +89,28 @@ public class Main {
                 if (inputTo == -1) {
                     continue;
                 }
-                if (searchInput.equalsIgnoreCase("exit")) {
-                    exit = true;
-                } else {
-                    // Get a list of unique edges using trip data and map them to their trip id's
-                    double distance = dijkstra.getDistance(IDtoIndexMap.get(inputFrom), IDtoIndexMap.get(inputTo));
-                    System.out.println("Distance from stop " + inputFrom + " to stop " + inputTo + " is " + distance);
-                    System.out.println("Path from stop " + inputFrom + " to stop " + inputTo + "will be displayed as follows:");
-                    System.out.println("[step_number]stop_id - distance from last stop");
-                    // Implement functionality of tracing back the shortest path.
+                // Get a list of unique edges using trip data and map them to their trip id's
+                double distance = dijkstra.getDistance(IDtoIndexMap.get(inputFrom), IDtoIndexMap.get(inputTo));
+                System.out.println("Distance from stop " + inputFrom + " to stop " + inputTo + " is " + distance);
+                System.out.println("Path from stop " + inputFrom + " to stop " + inputTo + "will be displayed as follows:");
+                System.out.println("[step_number]stop_name(stop_id) - distance: distance from last stop");
+                // Implement functionality of tracing back the shortest path.
+                LinkedList<Integer> path = new LinkedList<>();
+                path.addFirst(inputTo);
+                int prevVer = dijkstra.previousArr[inputTo];
+                while (prevVer != -1) {
+                    path.addFirst(prevVer);
+                    prevVer = dijkstra.previousArr[prevVer];
                 }
+                for (int i = 0; i < path.size(); i++) {
+                    int stopIdFromIndex = (int) stops.keySet().toArray()[path.get(i)];
+                    Stop validStop = stops.get(stopIdFromIndex);
+                    double distanceToStop = dijkstra.distanceArr[path.get(i)];
+                    System.out.println("[" + i + "]" + validStop.stop_name + "(" + validStop.stop_id + ") - distance: " + distanceToStop);
+                }
+                System.out.println("Press any key to continue. Enter \"exit\" to go back to main menu");
+                if (searchInput.equalsIgnoreCase("exit"))
+                    exit = true;
             }
         }
     }
@@ -100,6 +118,7 @@ public class Main {
     private static int validateBusIdInput(String searchInput, HashMap<Integer, Stop> stops) {
         try {
             int parsed = Integer.parseInt(searchInput);
+            Stop test = stops.get(parsed);
             if (stops.containsKey(parsed)) {
                 return parsed;
             } else {
@@ -110,16 +129,6 @@ public class Main {
             System.out.println("Your input must be an integer. Please try again.");
             return -1;
         }
-    }
-
-    // debug function
-    private static String edgeSearch(ArrayList<DijkstraSearch.Edge> edgeList, int from, int to) {
-        for (int i = 0; i < edgeList.size(); i++){
-            if (edgeList.get(i).from == from && edgeList.get(i).to == to) {
-                return "Edge found!";
-            }
-        }
-        return "edgeSearch is broken...";
     }
 
     static void runStopSearch(Scanner input, HashMap<Integer, Stop> stops) {
@@ -304,9 +313,9 @@ public class Main {
                             }
                         }
                         System.out.println("Trip ID: " + set.getKey() +
-                                ".\nLeaving from stop (ID): " + stops.get(set.getValue().getFirst().stop_id).stop_name +
-                                ".\nEnding at stop: " + stops.get(set.getValue().getLast().stop_id).stop_name +
-                                "\nArriving at " + arrivalTimeSearchIn + " at stop: " + arrivalStop.stop_name);
+                                ".\nLeaving from stop: " + stops.get(set.getValue().getFirst().stop_id).stop_name + "(" + set.getValue().getFirst().stop_id + ")" +
+                                ".\nEnding at stop: " + stops.get(set.getValue().getLast().stop_id).stop_name + "(" + set.getValue().getLast().stop_id + ")" +
+                                "\nArriving at " + arrivalTimeSearchIn + " at stop: " + arrivalStop.stop_name+ "(" + arrivalStop.stop_id + ")");
                         System.out.println("=========================================");
                     }
                 } else
