@@ -14,7 +14,7 @@ public class DijkstraSearch {
 
     DijkstraSearch(ArrayList<Edge> edgeList, HashMap<Integer, Stop> stops) {
         this.Vertices = new HashMap<>();
-        this.numOfVertices = findNumOfVertices(edgeList);
+        this.numOfVertices = stops.size();
         this.numOfEdges = edgeList.size();
 
         try {
@@ -60,10 +60,6 @@ public class DijkstraSearch {
         HashSet<Integer> froms = new HashSet<>();
         for(int i = 0; i < edgeList.size(); i++) {
             froms.add(edgeList.get(i).from);
-            if(!froms.contains(edgeList.get(i).to)) {
-                System.out.println(edgeList.get(i).to);
-                System.out.println(edgeList.get(i).to);
-            }
         }
         return froms.size();
     }
@@ -83,7 +79,6 @@ public class DijkstraSearch {
         distanceArr[startingPoint] = 0;
 
         try {
-
             for (int i = 0; i < numOfVertices - 1; i++) {
                 double min = Double.POSITIVE_INFINITY;
                 int u = 0;
@@ -98,6 +93,7 @@ public class DijkstraSearch {
 
                 if (workingEdges != null) {
                     for (int j = 0; j < workingEdges.size(); j++) {
+                        Edge test = workingEdges.get(j);
                         if (!visitedArr[workingEdges.get(j).to]) {
                             int v = workingEdges.get(j).to;
                             double combinedDist = distanceArr[u] + workingEdges.get(j).weight;

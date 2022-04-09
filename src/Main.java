@@ -24,7 +24,7 @@ public class Main {
                 int option = Integer.parseInt(in);
                 switch (option) {
                     case 1:
-                        System.out.println("Loading shortest path between bus stops program...");
+                        System.out.println("Loading bus journey information...");
                         runShortestPath(input, stops);
                         break;
                     case 2:
@@ -52,7 +52,6 @@ public class Main {
     }
 
     static void runShortestPath(Scanner input, HashMap<Integer, Stop> stops) {
-        System.out.println("Loading bus journey information...");
         HashMap<Integer, Integer> IDtoIndexMap = new HashMap<>();
         int index = 0;
         for (Map.Entry<Integer, Stop> set : stops.entrySet()) {
@@ -69,19 +68,47 @@ public class Main {
                     "path between the stops.");
             System.out.println("Type \"exit\" to exit.");
             System.out.println("=========================================");
-            System.out.print("Bus stop ID: ");
+            System.out.print("Enter departure stop ID: ");
+            int inputFrom;
+            int inputTo;
             String searchInput = input.nextLine();
-            if (searchInput.equalsIgnoreCase("exit")) {
-                exit = true;
-            } else {
-                // Get a list of unique edges using trip data and map them to their trip id's
-                int inputFrom = 3332;
-                int inputTo = 3198;
-                System.out.println("Stop " + inputFrom + " to index: " + IDtoIndexMap.get(inputFrom));
-                System.out.println("Stop " + inputTo + " to index: " + IDtoIndexMap.get(inputTo));
-                double distance = dijkstra.getDistance(IDtoIndexMap.get(inputFrom), IDtoIndexMap.get(inputTo));
-                System.out.println("UNIMPLEMENTED SHORTEST PATH FUNCTIONALITY");
+
+            inputFrom = validateBusIdInput(searchInput, stops);
+            // if from input is valid then ask for to input
+            if (inputFrom != -1) {
+                System.out.print("Enter arrival stop ID: ");
+                searchInput = input.nextLine();
+                inputTo = validateBusIdInput(searchInput, stops);
+                // if to input is valid then preform the shortest path else go back to start of loop
+                if (inputTo == -1) {
+                    continue;
+                }
+                if (searchInput.equalsIgnoreCase("exit")) {
+                    exit = true;
+                } else {
+                    // Get a list of unique edges using trip data and map them to their trip id's
+                    double distance = dijkstra.getDistance(IDtoIndexMap.get(inputFrom), IDtoIndexMap.get(inputTo));
+                    System.out.println("Distance from stop " + inputFrom + " to stop " + inputTo + " is " + distance);
+                    System.out.println("Path from stop " + inputFrom + " to stop " + inputTo + "will be displayed as follows:");
+                    System.out.println("[step_number]stop_id - distance from last stop");
+                    // Implement functionality of tracing back the shortest path.
+                }
             }
+        }
+    }
+
+    private static int validateBusIdInput(String searchInput, HashMap<Integer, Stop> stops) {
+        try {
+            int parsed = Integer.parseInt(searchInput);
+            if (stops.containsKey(parsed)) {
+                return parsed;
+            } else {
+                System.out.println("Bus stop ID does not exist! Please try again.");
+                return -1;
+            }
+        } catch (Exception e) {
+            System.out.println("Your input must be an integer. Please try again.");
+            return -1;
         }
     }
 
@@ -172,18 +199,15 @@ public class Main {
                         shape_dist_traveled = Double.parseDouble(tokens[8]);
                     Trip trip = new Trip(trip_id, arrival_time, departure_time, stop_id, stop_sequence, stop_headsign, pickup_type, drop_off_type, shape_dist_traveled);
                     // convert arrivalTime of current line to seconds
-                    if (trip.stop_sequence == 1) {
-                        // first trip in sequence
-                        lastTrip = trip;
-                    } else {
-                        // another trip in sequence
+                    if (trip.stop_sequence != 1) {
+                        // If not first trip in sequence
                         if (lastTrip != null) {
 //                            double weight = timeStringToSeconds(lastTrip.departure_time) - timeStringToSeconds(trip.arrival_time);
                             DijkstraSearch.Edge e = new DijkstraSearch.Edge(IDtoIndexMap.get(lastTrip.stop_id), IDtoIndexMap.get(trip.stop_id), 1);
                             edgeList.add(e);
-                            lastTrip = trip;
                         }
                     }
+                    lastTrip = trip;
 
                 } catch (Exception e) {
                     System.out.println(e);
