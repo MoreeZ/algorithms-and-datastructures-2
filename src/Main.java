@@ -1,6 +1,5 @@
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -22,6 +21,7 @@ public class Main {
             System.out.print("Select option: ");
             String in = input.nextLine();
             try {
+                // Check if input has integer format. Catch error if not int format
                 int option = Integer.parseInt(in);
                 switch (option) {
                     case 1:
@@ -41,12 +41,15 @@ public class Main {
                         break;
                 }
             } catch (Exception e) {
+                // If not int format then check if it says "quit" if quit then quit.
                 if (in.equalsIgnoreCase("quit")) {
                     System.out.print("Quitting program. See you later!");
                     quit = true;
-                } else
+                } else {
+                    // if not quit then tell user that the input is incorrect.
                     System.out.println("Incorrect input! Please enter a number.");
-                e.printStackTrace(System.out);
+//                    e.printStackTrace(System.out); // debug
+                }
             }
         }
         input.close();
@@ -54,11 +57,13 @@ public class Main {
     }
 
     static void runShortestPath(Scanner input, HashMap<Integer, Stop> stops) {
+        // Initialise and fill all a map that maps the
         HashMap<Integer, Integer> IDtoIndexMap = new HashMap<>();
         int index = 0;
         for (Map.Entry<Integer, Stop> set : stops.entrySet()) {
             IDtoIndexMap.put(set.getKey(), index++);
         }
+        // Initialise a list of all edges for the dijkstra algorithm
         ArrayList<DijkstraSearch.Edge> edgeList = getEdgeList(IDtoIndexMap);
         DijkstraSearch dijkstra = new DijkstraSearch(edgeList, stops);
         boolean exit = false;
@@ -178,7 +183,7 @@ public class Main {
             Scanner myReader = new Scanner(myFile);
             String dataLine = myReader.nextLine(); // get first line that doesnt store data
 
-            Trip lastTrip = null;
+            TripStop lastTrip = null;
             while (myReader.hasNextLine()) {
                 try {
                     // Load a line of text data
@@ -206,7 +211,7 @@ public class Main {
                         shape_dist_traveled = 0.0;
                     else
                         shape_dist_traveled = Double.parseDouble(tokens[8]);
-                    Trip trip = new Trip(trip_id, arrival_time, departure_time, stop_id, stop_sequence, stop_headsign, pickup_type, drop_off_type, shape_dist_traveled);
+                    TripStop trip = new TripStop(trip_id, arrival_time, departure_time, stop_id, stop_sequence, stop_headsign, pickup_type, drop_off_type, shape_dist_traveled);
                     // convert arrivalTime of current line to seconds
                     if (trip.stop_sequence != 1) {
                         // If not first trip in sequence
@@ -282,7 +287,7 @@ public class Main {
     }
 
     static void runSearchTrips(Scanner input, HashMap<Integer, Stop> stops) {
-        HashMap<Integer, LinkedList<Trip>> trips = new HashMap<>();
+        HashMap<Integer, LinkedList<TripStop>> trips = new HashMap<>();
 
         boolean exit = false;
         while (!exit) {
@@ -305,7 +310,7 @@ public class Main {
                     loadRelevantPaths(trips, stops, "stop_times.txt", arrivalTimeSearchIn);
                     System.out.println("=========================================");
                     System.out.println("Found " + trips.size() + " trips.");
-                    for (Map.Entry<Integer, LinkedList<Trip>> set : trips.entrySet()) {
+                    for (Map.Entry<Integer, LinkedList<TripStop>> set : trips.entrySet()) {
                         Stop arrivalStop = new Stop();
                         for (int i = 0; i < set.getValue().size(); i++) {
                             if (timeStringToSeconds(set.getValue().get(i).arrival_time) == timeStringToSeconds(arrivalTimeSearchIn)) {
@@ -315,7 +320,7 @@ public class Main {
                         System.out.println("Trip ID: " + set.getKey() +
                                 ".\nLeaving from stop: " + stops.get(set.getValue().getFirst().stop_id).stop_name + "(" + set.getValue().getFirst().stop_id + ")" +
                                 ".\nEnding at stop: " + stops.get(set.getValue().getLast().stop_id).stop_name + "(" + set.getValue().getLast().stop_id + ")" +
-                                "\nArriving at " + arrivalTimeSearchIn + " at stop: " + arrivalStop.stop_name+ "(" + arrivalStop.stop_id + ")");
+                                "\nArriving at " + arrivalTimeSearchIn + " at stop: " + arrivalStop.stop_name + "(" + arrivalStop.stop_id + ")");
                         System.out.println("=========================================");
                     }
                 } else
@@ -383,7 +388,7 @@ public class Main {
         }
     }
 
-    static void loadRelevantPaths(HashMap<Integer, LinkedList<Trip>> trips, HashMap<Integer, Stop> stops, String filename, String inputStr) {
+    static void loadRelevantPaths(HashMap<Integer, LinkedList<TripStop>> trips, HashMap<Integer, Stop> stops, String filename, String inputStr) {
         if (filename == null) {
             return;
         }
@@ -395,7 +400,7 @@ public class Main {
 
             int inputArrivalTimeInSeconds = timeStringToSeconds(inputStr);
             int previousID = 0;
-            LinkedList<Trip> tempList = new LinkedList<>();
+            LinkedList<TripStop> tempList = new LinkedList<>();
             boolean matchesArrivalTime = false;
 
             while (myReader.hasNextLine()) {
@@ -425,7 +430,7 @@ public class Main {
                         shape_dist_traveled = 0.0;
                     else
                         shape_dist_traveled = Double.parseDouble(tokens[8]);
-                    Trip trip = new Trip(trip_id, arrival_time, departure_time, stop_id, stop_sequence, stop_headsign, pickup_type, drop_off_type, shape_dist_traveled);
+                    TripStop trip = new TripStop(trip_id, arrival_time, departure_time, stop_id, stop_sequence, stop_headsign, pickup_type, drop_off_type, shape_dist_traveled);
                     // convert arrivalTime of current line to seconds
                     int arrivalInSeconds = timeStringToSeconds(arrival_time);
                     if (trip_id == previousID) {

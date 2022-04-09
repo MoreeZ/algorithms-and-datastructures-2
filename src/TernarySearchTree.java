@@ -1,7 +1,7 @@
+// Original source: https://www.javatpoint.com/ternary-search-tree
 /**
  * * Java Program to Implement Ternary Search Tree
  **/
-
 import java.util.HashMap;
 import java.util.Map;
 
