@@ -48,7 +48,7 @@ public class Main {
                 } else {
                     // if not quit then tell user that the input is incorrect.
                     System.out.println("Incorrect input! Please enter a number.");
-//                    e.printStackTrace(System.out); // debug
+                    e.printStackTrace(System.out); // debug
                 }
             }
         }
@@ -97,12 +97,12 @@ public class Main {
                 // Get a list of unique edges using trip data and map them to their trip id's
                 double distance = dijkstra.getDistance(IDtoIndexMap.get(inputFrom), IDtoIndexMap.get(inputTo));
                 System.out.println("Distance from stop " + inputFrom + " to stop " + inputTo + " is " + distance);
-                System.out.println("Path from stop " + inputFrom + " to stop " + inputTo + "will be displayed as follows:");
+                System.out.println("Path from stop " + inputFrom + " to stop " + inputTo + " will be displayed as follows:");
                 System.out.println("[step_number]stop_name(stop_id) - distance: distance from last stop");
                 // Implement functionality of tracing back the shortest path.
                 LinkedList<Integer> path = new LinkedList<>();
-                path.addFirst(inputTo);
-                int prevVer = dijkstra.previousArr[inputTo];
+                path.addFirst(IDtoIndexMap.get(inputTo));
+                int prevVer = dijkstra.previousArr[IDtoIndexMap.get(inputTo)];
                 while (prevVer != -1) {
                     path.addFirst(prevVer);
                     prevVer = dijkstra.previousArr[prevVer];
