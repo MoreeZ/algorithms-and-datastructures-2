@@ -149,7 +149,6 @@ public class Main {
             if (searchInput.equalsIgnoreCase("exit")) {
                 exit = true;
             } else {
-//          example: ANTRIM AVE
                 String searchResult = ternarySearch.search(searchInput.toUpperCase());
                 Stop stopData = ternarySearch.getStopData(stops, searchResult);
                 if (stopData != null) {
