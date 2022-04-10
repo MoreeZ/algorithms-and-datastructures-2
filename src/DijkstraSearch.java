@@ -56,14 +56,6 @@ public class DijkstraSearch {
         }
     }
 
-    public int findNumOfVertices (ArrayList<Edge> edgeList) {
-        HashSet<Integer> froms = new HashSet<>();
-        for(int i = 0; i < edgeList.size(); i++) {
-            froms.add(edgeList.get(i).from);
-        }
-        return froms.size();
-    }
-
     public double getDistance(int startingPoint, int endingPoint) {
         boolean[] visitedArr = new boolean[numOfVertices];
 
